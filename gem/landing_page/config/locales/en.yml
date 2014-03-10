@@ -1,0 +1,13 @@
+en:
+  landing_page:
+    label_name: Name
+    placeholder_name: your name
+    label_email: Email
+    placeholder_email: your email
+    label_subscribe: Subscribe
+    subscribed: You have been subscribed
+    privacy_message: We never will send you spam
+    heading_share: Let your friends know about it!
+    twitter_description: Look at this! %{url}
+    pinterest_description: Look at this!
+    pinterest_image: http://www.publicdomainpictures.net/pictures/30000/nahled/pumpkin-friends.jpg

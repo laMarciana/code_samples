@@ -1,0 +1,102 @@
+#encoding: UTF-8
+
+# Module with all the logic for automatic detection of text direction. It will be included in String class.
+module StringDirection
+  # left-to-right unicode mark
+  LTR_MARK = "\u200e"
+
+  # right-to-left unicode mark
+  RTL_MARK = "\u200f"
+
+  # returns the direction in which a string is written
+  #
+  # @return ["lft"] if it's a left-to-right string
+  # @return ["rtl"] if it's a right-to-left string
+  # @return ["bidi"] if it's a bi-directinal string
+  def direction
+    if has_ltr_mark? and has_rtl_mark?
+      'bidi'
+    elsif has_ltr_mark?
+      'ltr'
+    elsif has_rtl_mark?
+      'rtl'
+    elsif not has_rtl_characters?
+      'ltr'
+    elsif has_ltr_characters?
+      'bidi'
+    else
+      'rtl'
+    end
+  end
+
+  # whether string is a left-to-right one
+  #
+  # @return [Boolean] true if it is a left-to-right string, false otherwise
+  def is_ltr?
+    (direction == 'ltr') ? true : false
+  end
+
+  # whether string is a right-to-left one
+  #
+  # @return [Boolean] true if it is a right-to-left string, false otherwise
+  def is_rtl?
+    (direction == 'rtl') ? true : false
+  end
+
+  # whether string is a bi-directional one
+  #
+  # @return [Boolean] true if it is a bi-directional string, false otherwise
+  def is_bidi?
+    (direction == 'bidi') ? true : false
+  end
+
+  # returns whether string contains the unicode left-to-right mark
+  #
+  # @return [Boolean] true if it containts ltr mark, false otherwise
+  def has_ltr_mark?
+    match(/^(.*)#{LTR_MARK}(.*)$/) ? true : false
+  end
+
+  # returns whether string contains the unicode right-to-left mark
+  #
+  # @return [Boolean] true if it containts rtl mark, false otherwise
+  def has_rtl_mark?
+    match(/^(.*)#{RTL_MARK}(.*)$/) ? true : false
+  end
+
+  # returns whether string contains some right-to-left character
+  #
+  # @return [Boolean] true if it containts rtl characters, false otherwise
+  def has_rtl_characters?
+    match(/[#{StringDirection::join_scripts_for_regexp(StringDirection.rtl_scripts)}]/) ? true : false
+  end
+
+  # returns whether string contains some left-to-right character
+  #
+  # @return [Boolean] true if it containts ltr characters, false otherwise
+  def has_ltr_characters?
+    # ignore unicode marks, punctuations, symbols, separator and other general categories
+    gsub(/[\p{M}\p{P}\p{S}\p{Z}\p{C}]/, '').match(/[^#{StringDirection::join_scripts_for_regexp(StringDirection.rtl_scripts)}]/) ? true : false
+  end
+
+  class << self
+    attr_accessor :rtl_scripts
+
+    # hook that is called when the module is included and that initializes rtl_scripts
+    #
+    # @param [Module] base The base module from within current module is included
+    def included(base)
+      @rtl_scripts = %w[Arabic Hebrew Nko Kharoshthi Phoenician Syriac Thaana Tifinagh]
+    end
+
+    # given an array of script names, which should be supported by Ruby {http://www.ruby-doc.org/core-1.9.3/Regexp.html#label-Character+Properties regular expression properties}, returns a string where all of them are concatenaded inside a "\\p{}" construction
+    #
+    # @param [Array] scripts the array of script names
+    # @return [String] the script names joined ready to be used in the construction of a regular expression
+    # @example
+    #   StringDirection.join_scripts_for_regexp(%w[Arabic Hebrew]) #=> "\p{Arabic}\p{Hebrew}"
+    def join_scripts_for_regexp(scripts)
+      scripts.map { |script| '\p{'+script+'}' }.join
+    end
+  end
+end
